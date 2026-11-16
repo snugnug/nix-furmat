@@ -1,10 +1,18 @@
 use pound::Parse;
 
+mod format;
+
 #[derive(Parse, Debug)]
 #[pound(name = "nix-furmat")]
-struct Cli {}
+struct Cli {
+    file: String,
+}
 
 fn main() {
-    let _ = Cli::parse();
-    println!("Hello, world!");
+    match Cli::try_parse() {
+        Ok(cli) => format::format(cli.file),
+        Err(e) => {
+            println!("{}", e)
+        }
+    };
 }
