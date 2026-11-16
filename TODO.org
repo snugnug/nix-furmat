@@ -1,0 +1,26 @@
+* actual feature shit
+** input 1 (lavember)
+tabs support, or changing indent level
+tweaking the rules for what makes an array or attrset expand into multi-lines. for instance, currently in alejandra, a one-line attrset must only contain one item, like x = { a = 1; };, but as soon as I add another it breaks apart, which is sad.
+** input 2 (vnuxa)
+handle code in strings nicer
+like
+#+begin_src nix-ts
+  myCode = /* lua */ ''
+    print("I am a harmless ")
+  '';
+#+end_src
+gets borked into
+#+begin_src nix-ts
+  myCode = /*
+  lua
+  */ ''
+    print("I am a harmless ")
+  '';
+#+end_src
+fix this somehow (most languages are one word right? can just filter that)
+possibly indent parts too?
+*** big brain idea
+call external formatters (configurable) on specific parts marked with a language and indent formatted content like normal multiline strings
+** input 3 (nydragon)
+there would also be space or no space between brackets and first/last elem of an array
