@@ -24,6 +24,6 @@ possibly indent parts too?
 call external formatters (configurable) on specific parts marked with a language and indent formatted content like normal multiline strings
 ** input 3 (nydragon)
 there would also be space or no space between brackets and first/last elem of an array
-** input 4 (a_usr)
-look at the editorconfig spec for starting points
+** input 4 (a_usr, Arbel)
+respect .editorconfig values instead of making our own options
 https://github.com/editorconfig/editorconfig/wiki/EditorConfig-Properties
