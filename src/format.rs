@@ -1,5 +1,5 @@
 use nixon::{
-    ast::{AstNode, Expression},
+    ast::{self, AstNode, Expression},
     Element, ElementId, Node, SyntaxKind, TokenNode,
 };
 
@@ -39,12 +39,14 @@ fn should_inline(expr: Expression<'_, '_>, limit: usize) -> bool {
     }
 }
 
-fn grab_children(element: Element) {
+// fn grab_children(element: Element, elements: &mut Vec<Element>) {
+fn grab_children<'a>(element: Element<'a, 'a>, elements: &mut Vec<Element<'a, 'a>>) {
     match element {
         Element::Node(node) => {
-            for child in node.children() {
-                dbg!(child);
-                grab_children(child);
+            elements.push(element);
+            for child in node.children().filter(|a| matches!(a, Element::Node(_))) {
+                elements.push(child);
+                grab_children(child, elements);
             }
         }
         _ => {}
@@ -59,14 +61,38 @@ pub fn format(config: FormatterConfig, file: String) {
             return;
         }
     };
-    let document = nixon::parse(&content).expect("document");
+    let document = nixon::parse_syntax(&content).expect("document");
 
     for diagnostic in document.diagnostics() {
         println!("{:?} {diagnostic}", diagnostic.range());
     }
 
+    let mut elements: Vec<Element> = Vec::new();
+
     for node in document.root().children() {
-        grab_children(node);
+        grab_children(node, &mut elements);
+    }
+
+    dbg!(&elements);
+
+    for element in elements {
+        match element {
+            Element::Node(node) => match node.kind() {
+                SyntaxKind::List => {
+                    let Some(list) = ast::List::cast(node) else {
+                        continue;
+                    };
+                }
+                SyntaxKind::AttributeSet => {
+                    dbg!(ast::AttributeSet::cast(node));
+                }
+                // nixon::ast::List(expr) | nixon::ast::AttributeSet(expr) => {
+                //     dbg!(should_inline(expr));
+                // }
+                _ => {}
+            },
+            _ => {}
+        }
     }
 
     // for index in 0..document.element_count() {
