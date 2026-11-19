@@ -1,5 +1,7 @@
 use pound::Parse;
 
+use crate::format::FormatterConfig;
+
 mod format;
 
 #[derive(Parse, Debug)]
@@ -10,7 +12,10 @@ struct Cli {
 
 fn main() {
     match Cli::try_parse() {
-        Ok(cli) => format::format(cli.file),
+        Ok(cli) => {
+            let config = FormatterConfig::new(&cli.file);
+            format::format(config, cli.file);
+        }
         Err(e) => {
             println!("{}", e)
         }

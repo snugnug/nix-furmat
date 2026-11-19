@@ -1,0 +1,3 @@
+[*.nix]
+min-to-one-line-attrset = 1
+space-on-array-elements = true
