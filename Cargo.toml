@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+ec4rs = "1.2.0"
 nixon = "0.1.0"
 pound = "0.6.1"
 serde = { version = "1.0.229", features = ["derive"] }
