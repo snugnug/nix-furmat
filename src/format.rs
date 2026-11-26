@@ -3,6 +3,7 @@ use nixon::{
     Element, ElementId, Node, SyntaxKind, TokenNode,
 };
 
+#[derive(Debug)]
 pub struct FormatterConfig {
     pub space_on_array_elements: bool,
     pub max_elems_on_one_expression: usize,
@@ -19,7 +20,7 @@ impl FormatterConfig {
             .unwrap_or(false);
 
         let max_elems_on_one_expression = cfg
-            .get_raw_for_key("max-elemsn-on-one-expression")
+            .get_raw_for_key("min-to-one-line-attrset")
             .into_str()
             .parse::<usize>()
             .unwrap_or(1);
@@ -39,21 +40,23 @@ fn should_inline(expr: Expression<'_, '_>, limit: usize) -> bool {
     }
 }
 
-// fn grab_children(element: Element, elements: &mut Vec<Element>) {
-fn grab_children<'a>(element: Element<'a, 'a>, elements: &mut Vec<Element<'a, 'a>>) {
-    match element {
-        Element::Node(node) => {
-            elements.push(element);
-            for child in node.children().filter(|a| matches!(a, Element::Node(_))) {
-                elements.push(child);
-                grab_children(child, elements);
-            }
-        }
-        _ => {}
+fn do_format(expr: Expression, output: &mut String) {
+    match expr {
+        _ => output.push_str(expr.syntax().text()),
     }
 }
 
-pub fn format(config: FormatterConfig, file: String) {
+fn walk(src: Node, config: &FormatterConfig, output: &mut String) {
+    if let Some(expr) = ast::Expression::cast(src) {
+        do_format(expr, output);
+    }
+
+    for child in src.child_nodes() {
+        walk(child, config, output);
+    }
+}
+
+pub fn run_format(config: FormatterConfig, file: String) {
     let content = match std::fs::read_to_string(file) {
         Ok(c) => c,
         Err(e) => {
@@ -67,66 +70,9 @@ pub fn format(config: FormatterConfig, file: String) {
         println!("{:?} {diagnostic}", diagnostic.range());
     }
 
-    let mut elements: Vec<Element> = Vec::new();
+    let mut output = String::with_capacity(content.len());
 
-    for node in document.root().children() {
-        grab_children(node, &mut elements);
-    }
+    walk(document.root(), &config, &mut output);
 
-    dbg!(&elements);
-
-    for element in elements {
-        match element {
-            Element::Node(node) => match node.kind() {
-                SyntaxKind::List => {
-                    let Some(list) = ast::List::cast(node) else {
-                        continue;
-                    };
-                }
-                SyntaxKind::AttributeSet => {
-                    dbg!(ast::AttributeSet::cast(node));
-                }
-                // nixon::ast::List(expr) | nixon::ast::AttributeSet(expr) => {
-                //     dbg!(should_inline(expr));
-                // }
-                _ => {}
-            },
-            _ => {}
-        }
-    }
-
-    // for index in 0..document.element_count() {
-    //     let Some(Element::Token(token)) = document.element(ElementId::new(index as u32)) else {
-    //         continue;
-    //     };
-    //     // dbg!(&token);
-    //     // dbg!(&token.text());
-
-    //     let kind = token.kind();
-
-    //     match kind {
-    //         SyntaxKind::LeftBracket => {
-    //             let root = token.parent();
-
-    //             let nodes = root
-    //                 .children()
-    //                 .filter(|e| matches!(e, nixon::Element::Node(_)))
-    //                 .count();
-
-    //             let last = root.children().last();
-    //         }
-    //         SyntaxKind::LeftBrace => {
-    //             let root = token.parent();
-
-    //             let nodes = root
-    //                 .children()
-    //                 .filter(|e| matches!(e, nixon::Element::Node(_)))
-    //                 .count();
-
-    //             let last = root.children().last();
-    //         }
-    //         SyntaxKind::RightBracket => {}
-    //         _ => {}
-    //     }
-    // }
+    println!("{}", output);
 }

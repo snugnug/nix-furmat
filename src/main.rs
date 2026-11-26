@@ -14,7 +14,7 @@ fn main() {
     match Cli::try_parse() {
         Ok(cli) => {
             let config = FormatterConfig::new(&cli.file);
-            format::format(config, cli.file);
+            format::run_format(config, cli.file);
         }
         Err(e) => {
             println!("{}", e)
